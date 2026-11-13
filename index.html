@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Python Hero - بايثون هيرو</title>
+    <style>
+        :root {
+            --bg-dark: #070b19;
+            --card-bg: rgba(15, 23, 42, 0.9);
+            --primary: #6366f1;
+            --text-main: #f8fafc;
+            --text-dim: #94a3b8;
+            --accent-gold: #fbbf24;
+        }
+
+        * { box-sizing: border-box; font-family: 'Cairo', sans-serif; -webkit-tap-highlight-color: transparent; }
+        
+        body { 
+            background: radial-gradient(circle at top, #1e1b4b, #070b19), #000;
+            color: var(--text-main); 
+            margin: 0; 
+            padding: 10px; 
+            min-height: 100vh; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center;
+        }
+
+        .container { 
+            width: 100%; 
+            max-width: 500px; 
+            background: var(--card-bg);
+            backdrop-filter: blur(20px);
+            padding: 20px; 
+            border-radius: 25px; 
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.8);
+            display: flex; 
+            flex-direction: column; 
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .header { 
+            display: flex; justify-content: space-between; align-items: center; 
+            padding-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 15px; 
+        }
+
+        .action-btn { 
+            background: linear-gradient(135deg, #6366f1, #a855f7);
+            color: white; border: none; padding: 12px 20px; border-radius: 14px; 
+            cursor: pointer; font-weight: 700; font-size: 15px; transition: 0.2s;
+            display: inline-block;
+        }
+        .action-btn:active { transform: scale(0.95); }
+
+        .btn-back { background: rgba(255,255,255,0.1); }
+        .btn-retry { background: linear-gradient(135deg, #f59e0b, #d97706); color: #000; }
+        
+        .streak-badge { 
+            background: linear-gradient(135deg, #ff7e5f, #feb47b); color: #fff; 
+            padding: 6px 16px; border-radius: 20px; font-weight: 800; font-size: 15px; 
+        }
+
+        h2, h3 { margin: 0; color: #fff; text-align: center; }
+
+        .nav-card { 
+            background: rgba(255, 255, 255, 0.05);
+            width: 100%;
+            padding: 20px; border-radius: 18px; margin-bottom: 12px; cursor: pointer; 
+            border: 1px solid rgba(255, 255, 255, 0.1); transition: 0.2s;
+            display: flex; flex-direction: column; align-items: center; text-align: center;
+            text-decoration: none; color: inherit;
+        }
+        .nav-card:active { transform: scale(0.98); background: rgba(255, 255, 255, 0.1); }
+
+        .lesson-btn { 
+            background: rgba(255, 255, 255, 0.04); width: 100%; padding: 16px; border-radius: 16px; 
+            margin-bottom: 10px; cursor: pointer; border: 1px solid rgba(255,255,255,0.08); 
+            display: flex; justify-content: space-between; align-items: center; text-align: right;
+        }
+        .lesson-btn:active { transform: scale(0.98); }
+        
+        .status-dot { width: 12px; height: 12px; border-radius: 50%; border: 2px solid var(--text-dim); }
+        .status-done { background: #10b981; border-color: #10b981; box-shadow: 0 0 10px #10b981; }
+
+        .hidden { display: none !important; }
+
+        textarea { 
+            width: 100%; height: 120px; background: #070b19; color: #38bdf8; 
+            border: 1px solid #334155; border-radius: 14px; padding: 12px; 
+            font-family: monospace; font-size: 16px; resize: none; direction: ltr; text-align: left; 
+            margin-top: 10px; outline: none;
+        }
+        textarea:focus { border-color: #6366f1; }
+
+        .step-card { 
+            background: rgba(99, 102, 241, 0.1); padding: 14px; border-radius: 14px; 
+            margin-bottom: 10px; border-right: 4px solid #6366f1; font-size: 14px; line-height: 1.6;
+        }
+        
+        .feedback { 
+            margin-top: 15px; font-weight: 700; border-radius: 14px; padding: 14px; 
+            line-height: 1.5; text-align: center;
+        }
+        
+        .stars { font-size: 24px; color: var(--accent-gold); margin-top: 5px; }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<div class="container" id="app">
+    <div class="header">
+        <div>
+            <button class="action-btn btn-back hidden" id="backBtn" onclick="goHome()">⬅️ القائمة</button>
+        </div>
+        <div class="streak-badge" id="streakDisplay">🔥 0</div>
+        <div>
+            <button class="action-btn btn-retry hidden" id="retryBtn" onclick="restartLesson()">🔄 إعادة</button>
+        </div>
+    </div>
+
+    <!-- 1. شاشة اختيار الفئة العمرية -->
+    <div id="ageScreen">
+        <h2 style="margin-bottom: 10px;">👋 أهلاً بك في بايثون هيرو</h2>
+        <p style="text-align: center; color: var(--text-dim); margin-bottom: 20px; font-size: 14px;">اختر فئتك العمرية لضبط أسلوب الشرح المفصل:</p>
+        
+        <button class="nav-card" onclick="setAgeGroup('kids')">
+            <div style="font-size: 30px; margin-bottom: 5px;">🧸</div>
+            <h3 style="color: #34d399;">البراعم الصغار (5 - 9 سنوات)</h3>
+            <p style="color: var(--text-dim); font-size: 13px; margin-top: 5px;">شرح قصصي مشوق وتشبيهات من الحياة اليومية.</p>
+        </button>
+        
+        <button class="nav-card" onclick="setAgeGroup('teens')">
+            <div style="font-size: 30px; margin-bottom: 5px;">🚀</div>
+            <h3 style="color: #60a5fa;">المغامرون (10 - 15 سنة)</h3>
+            <p style="color: var(--text-dim); font-size: 13px; margin-top: 5px;">أسلوب حماسي يركز على بناء وتطوير الألعاب.</p>
+        </button>
+        
+        <button class="nav-card" onclick="setAgeGroup('adults')">
+            <div style="font-size: 30px; margin-bottom: 5px;">🧠</div>
+            <h3 style="color: #f472b6;">المحترفون (16 سنة فما فوق)</h3>
+            <p style="color: var(--text-dim); font-size: 13px; margin-top: 5px;">شرح هندسي وتوثيق تقني دقيق وعميق.</p>
+        </button>
+    </div>
+
+    <!-- 2. القائمة الرئيسية -->
+    <div id="mainMenuScreen" class="hidden">
+        <h2 style="margin-bottom: 20px;">🐍 اختر مسار التعلم</h2>
+        
+        <button class="nav-card" style="align-items: flex-start; text-align: right;" onclick="selectSection('fundamentals')">
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+                <span style="font-size: 24px;">🟩</span>
+                <h3 style="color: #4ade80; font-size: 19px; margin: 0;">القسم الأول: الأساسيات الإلزامية</h3>
+            </div>
+            <p style="color: var(--text-dim); font-size: 14px; margin: 0;">الطباعة، المتغيرات، الشروط، الحلقات، والقوائم.</p>
+        </button>
+        
+        <button class="nav-card" style="align-items: flex-start; text-align: right;" onclick="selectSection('advanced')">
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+                <span style="font-size: 24px;">🟦</span>
+                <h3 style="color: #60a5fa; font-size: 19px; margin: 0;">القسم الثاني: الفرعيات والمتقدمات</h3>
+            </div>
+            <p style="color: var(--text-dim); font-size: 14px; margin: 0;">الدوال، الإرجاع، معالجة الأخطاء، الملفات، والـ OOP.</p>
+        </button>
+    </div>
+
+    <!-- 3. شاشة قائمة الدروس -->
+    <div id="lessonListScreen" class="hidden">
+        <h2 id="sectionTitle" style="margin-bottom: 20px;"></h2>
+        <div id="lessonsContainer"></div>
+    </div>
+
+    <!-- 4. شاشة الدرس والتحدي -->
+    <div id="challengeScreen" class="hidden">
+        <h3 id="lessonTitleDisplay" style="color: var(--accent-gold); margin-top: 0; font-size: 20px;"></h3>
+        <div id="stepsContainer" style="margin-top: 15px;"></div>
+
+        <h4 style="margin: 15px 0 5px 0; color: #fff; font-size: 16px;">✍️ اكتب كود التحدي هنا:</h4>
+        <textarea id="codeInput" spellcheck="false" placeholder="# اكتب حلك البرمجي هنا..."></textarea>
+        
+        <button class="action-btn" style="width: 100%; margin-top: 15px; font-size: 16px;" onclick="validateChallenge()">🚀 فحص الكود والتأكد</button>
+        <div id="feedbackArea" class="feedback hidden"></div>
+    </div>
+</div>
+
+<script>
+    const curriculum = {
+        'fundamentals': [
+            {
+                id: 'f1', title: '1. أمر الطباعة (Print)', icon: '🖨️',
+                ages: {
+                    kids: ['مفهوم الدرس: أمر الطباعة print() هو الطريقة التي يجعل بها الكمبيوتر يتكلم ويرد عليك.', 'مثال توضيحي:\nprint("مرحباً بك")'],
+                    teens: ['مفهوم الدرس: الدالة المدمجة print() مسؤولة عن إرسال المخرجات إلى الشاشة.', 'مثال توضيحي:\nprint("Game Started!")'],
+                    adults: ['مفهوم الدرس: الوظيفة الأساسية print() لإخراج البيانات.', 'مثال توضيحي:\nprint("System Initialized")']
+                },
+                task: 'اطبع الجملة التالية تماماً: Hello World',
+                check: (code) => {
+                    const clean = code.replace(/\s+/g, '');
+                    if (!clean.includes('print("HelloWorld")') && !clean.includes("print('HelloWorld')")) {
+                        return "خطأ: تأكد من كتابة print والأقواس والنص بدقة.";
+                    }
+                    return true;
+                }
+            },
+            {
+                id: 'f2', title: '2. المتغيرات (Variables)', icon: '📦',
+                ages: {
+                    kids: ['مفهوم الدرس: المتغير يشبه الصندوق الذي نخبئ فيه القيم.', 'مثال توضيحي:\npoints = 50'],
+                    teens: ['مفهوم الدرس: مساحة في الذاكرة لتخزين البيانات.', 'مثال توضيحي:\nscore = 100'],
+                    adults: ['مفهوم الدرس: مؤشرات تشير إلى كائنات في الذاكرة.', 'مثال توضيحي:\nplayer_score = 100']
+                },
+                task: 'أنشئ متغرياً باسم score وقيمته 100',
+                check: (code) => {
+                    const clean = code.replace(/\s+/g, '');
+                    if (!clean.includes('score=100')) {
+                        return "خطأ: يجب تعريف المتغير بالصيغة: score = 100";
+                    }
+                    return true;
+                }
+            }
+        ],
+        'advanced': [
+            {
+                id: 'a1', title: '1. الدوال (Functions)', icon: '⚡',
+                ages: {
+                    kids: ['مفهوم الدرس: الدالة آلة خفية تعطينا مخرجات.', 'مثال توضيحي:\ndef say_hi():\n    print("أهلاً")'],
+                    teens: ['مفهوم الدرس: تنظيم الكود ومنع تكراره.', 'مثال توضيحي:\ndef add(a, b):\n    return a + b'],
+                    adults: ['مفهوم الدرس: وحدات برمجية نمطية.', 'مثال توضيحي:\ndef compute(x):\n    return x * 2']
+                },
+                task: 'أنشئ دالة باسم greet تطبع النص "Hi"',
+                check: (code) => {
+                    const clean = code.replace(/\s+/g, '');
+                    if (!clean.includes('defgreet():print("Hi")') && !clean.includes("defgreet():print('Hi')")) {
+                        return "خطأ: تأكد من تعريف الدالة والمسافة البادئة.";
+                    }
+                    return true;
+                }
+            }
+        ]
+    };
+
+    let gameState = JSON.parse(localStorage.getItem('pythonHeroFixedSave')) || {
+        ageGroup: null, lastLogin: null, streak: 0, completedLessons: []
+    };
+
+    function saveLocal() {
+        localStorage.setItem('pythonHeroFixedSave', JSON.stringify(gameState));
+    }
+
+    function initStreak() {
+        const today = new Date().toISOString().split('T')[0];
+        if (!gameState.lastLogin) gameState.streak = 1;
+        else {
+            const lastDate = new Date(gameState.lastLogin);
+            const currDate = new Date(today);
+            const diffDays = Math.round((currDate - lastDate) / (1000 * 60 * 60 * 24));
+            if (diffDays === 1) gameState.streak += 1;
+            else if (diffDays > 1) gameState.streak = 1;
+        }
+        gameState.lastLogin = today;
+        saveLocal();
+        document.getElementById('streakDisplay').innerHTML = `🔥 ${gameState.streak}`;
+    }
+
+    function showScreen(screenId) {
+        ['ageScreen', 'mainMenuScreen', 'lessonListScreen', 'challengeScreen'].forEach(id => {
+            const el = document.getElementById(id);
+            if(el) el.classList.add('hidden');
+        });
+        const targetEl = document.getElementById(screenId);
+        if(targetEl) targetEl.classList.remove('hidden');
+
+        const backBtn = document.getElementById('backBtn');
+        const retryBtn = document.getElementById('retryBtn');
+        
+        if (screenId === 'ageScreen' || screenId === 'mainMenuScreen') {
+            if(backBtn) backBtn.classList.add('hidden');
+        } else {
+            if(backBtn) backBtn.classList.remove('hidden');
+        }
+
+        if (screenId === 'challengeScreen') {
+            if(retryBtn) retryBtn.classList.remove('hidden');
+        } else {
+            if(retryBtn) retryBtn.classList.add('hidden');
+        }
+    }
+
+    function setAgeGroup(group) {
+        gameState.ageGroup = group;
+        saveLocal();
+        showScreen('mainMenuScreen');
+    }
+
+    function goHome() {
+        showScreen('mainMenuScreen');
+    }
+
+    let currentSectionKey = '';
+    let currentLessonObj = null;
+
+    function selectSection(sectionKey) {
+        currentSectionKey = sectionKey;
+        const screenTitle = sectionKey === 'fundamentals' ? "🟩 الأساسيات الإلزامية" : "🟦 الفرعيات والمتقدمات";
+        document.getElementById('sectionTitle').innerText = screenTitle;
+
+        const container = document.getElementById('lessonsContainer');
+        container.innerHTML = '';
+
+        curriculum[sectionKey].forEach(les => {
+            const isDone = gameState.completedLessons.includes(les.id);
+            const div = document.createElement('button');
+            div.className = 'lesson-btn';
+            div.onclick = () => loadChallenge(les);
+            div.innerHTML = `
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <span style="font-size: 22px;">${les.icon}</span>
+                    <span style="font-weight: 700; font-size: 16px; color: #fff;">${les.title}</span>
+                </div>
+                <span class="status-dot ${isDone ? 'status-done' : ''}"></span>
+            `;
+            container.appendChild(div);
+        });
+
+        showScreen('lessonListScreen');
+    }
+
+    function loadChallenge(lesObj) {
+        currentLessonObj = lesObj;
+        document.getElementById('lessonTitleDisplay').innerText = lesObj.title;
+
+        const ageSteps = (lesObj.ages && lesObj.ages[gameState.ageGroup]) ? lesObj.ages[gameState.ageGroup] : lesObj.ages.teens;
+        let stepsHtml = '';
+        ageSteps.forEach(st => {
+            stepsHtml += `<div class="step-card" style="white-space: pre-line;">${st}</div>`;
+        });
+        stepsHtml += `<div style="color: var(--accent-gold); font-weight: 700; margin: 15px 0 10px 0; font-size: 16px;">🎯 ${lesObj.task}</div>`;
+        
+        document.getElementById('stepsContainer').innerHTML = stepsHtml;
+        document.getElementById('codeInput').value = '';
+        document.getElementById('feedbackArea').classList.add('hidden');
+
+        showScreen('challengeScreen');
+    }
+
+    function restartLesson() {
+        if (currentLessonObj) loadChallenge(currentLessonObj);
+    }
+
+    function validateChallenge() {
+        if (!currentLessonObj) return;
+        const code = document.getElementById('codeInput').value;
+        const validationResult = currentLessonObj.check(code);
+
+        const feedbackArea = document.getElementById('feedbackArea');
+        feedbackArea.classList.remove('hidden');
+
+        if (validationResult === true) {
+            feedbackArea.style.background = '#065f46';
+            feedbackArea.style.color = '#34d399';
+            feedbackArea.innerHTML = `
+                <div style="font-size: 18px; font-weight: 800;">🌟🌟🌟 عمل بطولي!</div>
+                <div style="font-size: 14px; margin-top: 5px;">حلك صحيح 100%.</div>
+                <div class="stars">★★★</div>
+            `;
+
+            if (!gameState.completedLessons.includes(currentLessonObj.id)) {
+                gameState.completedLessons.push(currentLessonObj.id);
+                saveLocal();
+            }
+            setTimeout(() => { selectSection(currentSectionKey); }, 1500);
+        } else {
+            feedbackArea.style.background = '#991b1b';
+            feedbackArea.style.color = '#fca5a5';
+            feedbackArea.innerHTML = `
+                <div style="font-weight: 800; margin-bottom: 5px;">⚠️ ملاحظة:</div>
+                <div>${validationResult}</div>
+            `;
+        }
+    }
+
+    initStreak();
+    if (!gameState.ageGroup) {
+        showScreen('ageScreen');
+    } else {
+        showScreen('mainMenuScreen');
+    }
+</script>
+
+</body>
+</html>
